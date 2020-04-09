@@ -1,0 +1,5 @@
+add_subdirectory(log)
+add_subdirectory(memory)
+add_subdirectory(vault)
+add_subdirectory(transport)
+add_subdirectory(key_agreement)

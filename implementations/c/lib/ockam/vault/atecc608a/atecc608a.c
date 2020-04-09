@@ -13,14 +13,13 @@
 
 #include "ockam/memory.h"
 #include "ockam/vault.h"
+#include "ockam/vault/atecc608a/atecc608a.h"
 
 #include "cryptoauthlib.h"
 #include "atca_cfgs.h"
 #include "atca_iface.h"
 #include "atca_device.h"
 #include "basic/atca_basic_aes_gcm.h"
-
-#include "atecc608a.h"
 
 /*
  ********************************************************************************************************

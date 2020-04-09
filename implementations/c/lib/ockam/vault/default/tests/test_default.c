@@ -1,6 +1,6 @@
 /**
 ********************************************************************************************************
-* @file        test_atecc608a.c
+* @file        test_default.c
 * @brief
 ********************************************************************************************************
 */
@@ -11,26 +11,19 @@
  ********************************************************************************************************
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "cmocka.h"
 #include "ockam/error.h"
-#include "ockam/vault.h"
 #include "ockam/memory.h"
-
-#include "cryptoauthlib.h"
-#include "atca_cfgs.h"
-#include "atca_iface.h"
-#include "atca_device.h"
-
-#include "test_vault.h"
-#include "atecc608a.h"
+#include "ockam/vault.h"
+#include "ockam/vault/default/default.h"
+#include "ockam/vault/tests/test_vault.h"
 
 /*
  ********************************************************************************************************
@@ -62,19 +55,9 @@
  ********************************************************************************************************
  */
 
-ATCAIfaceCfg atca_iface_i2c = {.iface_type = ATCA_I2C_IFACE,
-                               .devtype = ATECC608A,
-                               {
-                                   .atcai2c.slave_address = 0xC0,
-                                   .atcai2c.bus = 1,
-                                   .atcai2c.baud = 100000,
-                               },
-                               .wake_delay = 1500,
-                               .rx_retries = 20};
+OckamVaultDefaultConfig default_cfg = {.features = OCKAM_VAULT_ALL, .ec = kOckamVaultEcCurve25519};
 
-OckamVaultAtecc608aConfig atecc608a_cfg = {.ec = kOckamVaultEcP256, .p_atca_iface_cfg = &atca_iface_i2c};
-
-const OckamVault *vault = &ockam_vault_atecc608a;
+const OckamVault *vault = &ockam_vault_default;
 const OckamMemory *memory = &ockam_memory_stdlib;
 
 /*
@@ -101,50 +84,50 @@ const OckamMemory *memory = &ockam_memory_stdlib;
 int main(void) {
   OckamError err;
   uint8_t i;
-  void *atecc608a_0 = 0;
+  void *default_0 = 0;
 
-  memory->Create(0); /* Always initialize memory first!                    */
+  memory->Create(0);
 
-  cmocka_set_message_output(CM_OUTPUT_XML); /* Configure the unit test output for JUnit XML       */
+  cmocka_set_message_output(CM_OUTPUT_XML);
 
   /* ---------- */
   /* Vault Init */
   /* ---------- */
 
-  err = vault->Create(&atecc608a_0, &atecc608a_cfg, memory);
-  if (err != kOckamErrorNone) {
-    return -1;
+  vault->Create(&default_0, &default_cfg, memory);
+  if (err != kOckamErrorNone) { /* Ensure it initialized before proceeding, otherwise */
+    return -1;                  /* don't bother trying to run any other tests         */
   }
 
   /* ------------------------ */
   /* Random Number Generation */
   /* ------------------------ */
 
-  TestVaultRunRandom(vault, atecc608a_0, memory);
+  TestVaultRunRandom(vault, default_0, memory);
 
   /* --------------------- */
   /* Key Generation & ECDH */
   /* --------------------- */
 
-  TestVaultRunKeyEcdh(vault, atecc608a_0, memory, atecc608a_cfg.ec, 0);
+  TestVaultRunKeyEcdh(vault, default_0, memory, default_cfg.ec, 1);
 
   /* ------ */
   /* SHA256 */
   /* ------ */
 
-  TestVaultRunSha256(vault, atecc608a_0, memory);
+  TestVaultRunSha256(vault, default_0, memory);
 
   /* -----*/
   /* HKDF */
   /* -----*/
 
-  TestVaultRunHkdf(vault, atecc608a_0, memory);
+  TestVaultRunHkdf(vault, default_0, memory);
 
   /* -------------------- */
   /* AES GCM Calculations */
   /* -------------------- */
 
-  TestVaultRunAesGcm(vault, atecc608a_0, memory);
+  TestVaultRunAesGcm(vault, default_0, memory);
 
   return 0;
 }

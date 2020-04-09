@@ -1,6 +1,6 @@
 /**
 ********************************************************************************************************
-* @file        test_atecc508a.c
+* @file        test_atecc608a.c
 * @brief
 ********************************************************************************************************
 */
@@ -21,16 +21,15 @@
 #include <cmocka.h>
 
 #include "ockam/error.h"
-#include "ockam/vault.h"
 #include "ockam/memory.h"
+#include "ockam/vault.h"
+#include "ockam/vault/atecc608a/atecc608a.h"
+#include "ockam/vault/tests/test_vault.h"
 
 #include "cryptoauthlib.h"
 #include "atca_cfgs.h"
 #include "atca_iface.h"
 #include "atca_device.h"
-
-#include "test_vault.h"
-#include "atecc508a.h"
 
 /*
  ********************************************************************************************************
@@ -63,18 +62,18 @@
  */
 
 ATCAIfaceCfg atca_iface_i2c = {.iface_type = ATCA_I2C_IFACE,
-                               .devtype = ATECC508A,
+                               .devtype = ATECC608A,
                                {
-                                   .atcai2c.slave_address = 0xB0,
+                                   .atcai2c.slave_address = 0xC0,
                                    .atcai2c.bus = 1,
                                    .atcai2c.baud = 100000,
                                },
                                .wake_delay = 1500,
                                .rx_retries = 20};
 
-OckamVaultAtecc508aConfig atecc508a_cfg = {.ec = kOckamVaultEcP256, .p_atca_iface_cfg = &atca_iface_i2c};
+OckamVaultAtecc608aConfig atecc608a_cfg = {.ec = kOckamVaultEcP256, .p_atca_iface_cfg = &atca_iface_i2c};
 
-const OckamVault *vault = &ockam_vault_atecc508a;
+const OckamVault *vault = &ockam_vault_atecc608a;
 const OckamMemory *memory = &ockam_memory_stdlib;
 
 /*
@@ -101,7 +100,7 @@ const OckamMemory *memory = &ockam_memory_stdlib;
 int main(void) {
   OckamError err;
   uint8_t i;
-  void *atecc508a_0 = 0;
+  void *atecc608a_0 = 0;
 
   memory->Create(0); /* Always initialize memory first!                    */
 
@@ -111,41 +110,40 @@ int main(void) {
   /* Vault Init */
   /* ---------- */
 
-  vault->Create(&atecc508a_0, /* Create a vault using ATECC508A                     */
-                &atecc508a_cfg, memory);
-  if (err != kOckamErrorNone) { /* Ensure it initialized before proceeding, otherwise */
-    return -1;                  /* don't bother trying to run any other tests         */
+  err = vault->Create(&atecc608a_0, &atecc608a_cfg, memory);
+  if (err != kOckamErrorNone) {
+    return -1;
   }
 
   /* ------------------------ */
   /* Random Number Generation */
   /* ------------------------ */
 
-  TestVaultRunRandom(vault, atecc508a_0, memory);
+  TestVaultRunRandom(vault, atecc608a_0, memory);
 
   /* --------------------- */
   /* Key Generation & ECDH */
   /* --------------------- */
 
-  TestVaultRunKeyEcdh(vault, atecc508a_0, memory, atecc508a_cfg.ec, 0);
+  TestVaultRunKeyEcdh(vault, atecc608a_0, memory, atecc608a_cfg.ec, 0);
 
   /* ------ */
   /* SHA256 */
   /* ------ */
 
-  TestVaultRunSha256(vault, atecc508a_0, memory);
+  TestVaultRunSha256(vault, atecc608a_0, memory);
 
   /* -----*/
   /* HKDF */
   /* -----*/
 
-  TestVaultRunHkdf(vault, atecc508a_0, memory);
+  TestVaultRunHkdf(vault, atecc608a_0, memory);
 
   /* -------------------- */
   /* AES GCM Calculations */
   /* -------------------- */
 
-  TestVaultRunAesGcm(vault, atecc508a_0, memory);
+  TestVaultRunAesGcm(vault, atecc608a_0, memory);
 
   return 0;
 }

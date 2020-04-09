@@ -1,10 +1,10 @@
-# Ockam Vault ATECC608A
+# Ockam Vault ATECC508A
 
-project(atecc608a C)
+project(atecc508a C)
 include(FetchContent)
 
 message(STATUS "")
-message(STATUS "---------------- Vault Atecc608a -----------------")
+message(STATUS "---------------- Vault Atecc508a -----------------")
 
 set(ATCA_HAL_I2C ON CACHE BOOL "")
 set(ATCA_BUILD_SHARED_LIBS OFF CACHE BOOL "")
@@ -18,11 +18,22 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(cryptoauthlib-tar)
 
+#FetchContent_GetProperties(cryptoauthlibgit)
+#
+#if(NOT cryptoauthlibgit_POPULATED)
+#  message(STATUS "||||| DOWNLOADING |||||")
+#  FetchContent_Populate(cryptoauthlibgit)
+#endif()
+
+#add_subdirectory(${cryptoauthlibgit_SOURCE_DIR} ${cryptoauthlibgit_BINARY_DIR})
+
 ockam_cc_library(
   NAME
-    atecc608a
+    atecc508a
   SRCS
-    "atecc608a.c"
+    "atecc508a.c"
+  HDRS
+    "atecc508a.h"
   INCLUDES
     "${cryptoauthlib-tar_SOURCE_DIR}/lib"
     "${cryptoauthlib-tar_SOURCE_DIR}/lib/hal"
@@ -30,6 +41,7 @@ ockam_cc_library(
   DEPS
     cryptoauth
     ockam::memory
+    ockam::vault::default
   PUBLIC
 )
 
