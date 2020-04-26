@@ -61,7 +61,7 @@ int main(void)
   ockam_memory_t memory;
 
   error = ockam_memory_stdlib_init(&memory);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
+  if (error) goto exit;
 
   /*
    * To initialize a handle to the default vault, we define a variable of the
@@ -78,7 +78,7 @@ int main(void)
   ockam_vault_default_attributes_t vault_attributes = { .memory = &memory };
 
   error = ockam_vault_default_init(&vault, &vault_attributes);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
+  if (error) goto exit;
 
   /*
    * We now have an initialized vault handle of type ockam_vault_t, we can
@@ -93,7 +93,7 @@ int main(void)
   size_t       digest_length;
 
   error = ockam_vault_sha256(&vault, (uint8_t*) input, input_length, &digest[0], digest_size, &digest_length);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
+  if (error) goto exit;
 
   /* Now let's print the digest in hexadecimal form. */
 
@@ -101,15 +101,14 @@ int main(void)
   for (i = 0; i < digest_size; i++) { printf("%02x", digest[i]); }
   printf("\n");
 
-  /* Deinitialize to free resources associated with this handle. */
+  /* free resources associated with this handle. */
   error = ockam_vault_deinit(&vault);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
+  if (error) goto exit;
 
-  /* Deinitialize to free resources associated with this handle. */
+  /* free resources associated with this handle. */
   error = ockam_memory_deinit(&memory);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
 
 exit:
-  if (error != OCKAM_ERROR_NONE) { exit_code = -1; }
+  if (error) exit_code = -1;
   return exit_code;
 }

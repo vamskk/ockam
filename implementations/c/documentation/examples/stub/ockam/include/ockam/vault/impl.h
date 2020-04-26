@@ -40,9 +40,12 @@ typedef struct {
                                             size_t*              plaintext_length);
 } ockam_vault_dispatch_table_t;
 
-struct ockam_vault_t {
+struct ockam_vault {
   ockam_vault_dispatch_table_t* dispatch;
   void*                         context;
+};
+
+struct ockam_vault_secret {
 };
 
 #endif
