@@ -69,19 +69,26 @@ int main(void)
   error = ockam_vault_default_init(&vault, &vault_attributes);
   if (error) goto exit;
 
+
+  uint8_t buffer[16];
+
+  error = ockam_vault_random_bytes_generate(&vault, &buffer[0], 16);
+  if(error != OCKAM_ERROR_NONE) goto exit;
+
   /*
    * We now have an initialized vault handle of type ockam_vault_t, we can
    * call any of the functions defined in `ockam/vault.h` using this handle.
    */
 
-  ockam_vault_secret_t            key;
-  ockam_vault_secret_attributes_t key_attributes = {
-    .type        = OCKAM_VAULT_SECRET_TYPE_AES128_KEY,
-    .persistence = OCKAM_VAULT_SECRET_PERSISTENCE_EPHEMERAL,
-  };
+  ockam_vault_secret_t key;
 
-  error = ockam_vault_secret_generate(&vault, &key, &key_attributes);
-  if (error != OCKAM_ERROR_NONE) { goto exit; }
+  error = ockam_vault_secret_import(&vault,
+                                    &buffer[0],
+                                    16,
+                                    &key,
+                                    OCKAM_VAULT_SECRET_TYPE_AES128_KEY,
+                                    OCKAM_VAULT_SECRET_PERSISTENCE_EPHEMERAL,
+                                    0);
 
   uint16_t nonce = 1;
 
@@ -98,16 +105,16 @@ int main(void)
   error = ockam_memory_alloc(&memory, &ciphertext_and_tag, ciphertext_and_tag_size);
   if (error) goto exit;
 
-  error = ockam_vault_aead_aes_gcm_encrypt(&vault,
-                                           &key,
-                                           nonce,
-                                           (uint8_t*) additional_data,
-                                           additional_data_length,
-                                           (uint8_t*) plaintext,
-                                           plaintext_length,
-                                           ciphertext_and_tag,
-                                           ciphertext_and_tag_size,
-                                           &ciphertext_and_tag_length);
+  error = ockam_vault_aead_aes_128_gcm_encrypt(&vault,
+                                               &key,
+                                               nonce,
+                                               (uint8_t*) additional_data,
+                                               additional_data_length,
+                                               (uint8_t*) plaintext,
+                                               plaintext_length,
+                                               ciphertext_and_tag,
+                                               ciphertext_and_tag_size,
+                                               &ciphertext_and_tag_length);
   if (error) goto exit;
 
   size_t   decrypted_plaintext_size = plaintext_length;
@@ -117,16 +124,16 @@ int main(void)
   error = ockam_memory_alloc(&memory, &decrypted_plaintext, decrypted_plaintext_size);
   if (error) goto exit;
 
-  error = ockam_vault_aead_aes_gcm_decrypt(&vault,
-                                           &key,
-                                           nonce,
-                                           (uint8_t*) additional_data,
-                                           additional_data_length,
-                                           ciphertext_and_tag,
-                                           ciphertext_and_tag_length,
-                                           decrypted_plaintext,
-                                           decrypted_plaintext_size,
-                                           &decrypted_plaintext_length);
+  error = ockam_vault_aead_aes_128_gcm_decrypt(&vault,
+                                               &key,
+                                               nonce,
+                                               (uint8_t*) additional_data,
+                                               additional_data_length,
+                                               ciphertext_and_tag,
+                                               ciphertext_and_tag_length,
+                                               decrypted_plaintext,
+                                               decrypted_plaintext_size,
+                                               &decrypted_plaintext_length);
   if (error) goto exit;
 
   error = ockam_memory_free(&memory, ciphertext_and_tag, ciphertext_and_tag_size);
