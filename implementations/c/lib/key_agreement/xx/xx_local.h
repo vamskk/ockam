@@ -20,18 +20,20 @@ void print_uint8_str(uint8_t* p, uint16_t size, char* msg);
 void string_to_hex(uint8_t* hexstring, uint8_t* val, size_t* p_bytes);
 void mix_hash(key_establishment_xx* p_handshake, uint8_t* p_bytes, uint16_t b_length);
 
+ockam_error_t key_agreement_prologue_xx(key_establishment_xx* xx);
+
 ockam_error_t xx_responder_m1_process(key_establishment_xx* p_h, uint8_t* p_m1, size_t m1_size);
 ockam_error_t xx_responder_m2_make(key_establishment_xx* p_h, uint8_t* p_msg, size_t msg_size, size_t* p_bytesWritten);
 ockam_error_t xx_responder_m3_process(key_establishment_xx* p_h, uint8_t* p_m3, size_t m3_size);
-ockam_error_t xx_responder_epilogue(key_establishment_xx* p_h);
-ockam_error_t
-              xx_initiator_m1_make(key_establishment_xx* p_h, uint8_t* p_sendBuffer, size_t buffer_length, size_t* p_transmit_size);
+ockam_error_t xx_responder_epilogue(key_establishment_xx* p_h, ockam_key_t* p_key);
+ockam_error_t xx_initiator_m1_make(key_establishment_xx* p_h, uint8_t* p_sendBuffer,
+                     size_t buffer_length, size_t* p_transmit_size);
 ockam_error_t xx_initiator_m2_process(key_establishment_xx* p_h, uint8_t* p_recv, size_t recv_size);
 ockam_error_t xx_initiator_m3_make(key_establishment_xx* p_h, uint8_t* p_msg, size_t* p_msg_size);
-ockam_error_t xx_initiator_epilogue(key_establishment_xx* p_h);
+ockam_error_t xx_initiator_epilogue(key_establishment_xx* p_h, ockam_key_t* p_key);
 ockam_error_t xx_encrypt(
-  key_establishment_xx* xx, uint8_t* payload, size_t payload_size, uint8_t* msg, size_t msg_length, size_t* msg_size);
-ockam_error_t xx_decrypt(key_establishment_xx* xx,
+  ockam_key_t* p_key, uint8_t* payload, size_t payload_size, uint8_t* msg, size_t msg_length, size_t* msg_size);
+ockam_error_t xx_decrypt(ockam_key_t* p_key,
                          uint8_t*              payload,
                          size_t                payload_size,
                          uint8_t*              msg,

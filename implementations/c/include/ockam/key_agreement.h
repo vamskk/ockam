@@ -36,6 +36,8 @@
  ********************************************************************************************************
  */
 
+typedef struct ockam_key_t ockam_key_t;
+
 /**
  * key_establishment_xx - the handshake structure is passed to all handshake functions.
  */
@@ -52,13 +54,13 @@ typedef struct {
   uint8_t              ck[KEY_SIZE];
   ockam_vault_secret_t ck_secret;
   uint8_t              h[SHA256_SIZE];
-  ockam_vault_secret_t ke_secret;
-  ockam_vault_secret_t kd_secret;
-  uint16_t             ne;
-  uint16_t             nd;
+//  ockam_vault_secret_t ke_secret;
+//  ockam_vault_secret_t kd_secret;
+//  uint16_t             ne;
+//  uint16_t             nd;
   ockam_vault_t*       vault;
-  ockam_reader_t*      p_reader;
-  ockam_writer_t*      p_writer;
+//  ockam_reader_t*      p_reader;
+//  ockam_writer_t*      p_writer;
 } key_establishment_xx;
 
 /*
@@ -67,22 +69,22 @@ typedef struct {
  ********************************************************************************************************
  */
 
-ockam_error_t key_agreement_prologue_xx(key_establishment_xx* xx);
+ockam_error_t ockam_key_establish_initiator_xx(ockam_key_t* p_key, ockam_vault_t* p_vault,
+                                               ockam_reader_t* p_reader, ockam_writer_t* p_writer);
 
-ockam_error_t ockam_key_establish_initiator_xx(key_establishment_xx* xx);
-
-ockam_error_t ockam_key_establish_responder_xx(key_establishment_xx* xx);
+ockam_error_t ockam_key_establish_responder_xx(ockam_key_t* p_key, ockam_vault_t* p_vault,
+                                               ockam_reader_t* p_reader, ockam_writer_t* p_writer);
 
 ockam_error_t xx_encrypt(
-  key_establishment_xx* xx, uint8_t* payload, size_t payload_size, uint8_t* msg, size_t msg_length, size_t* msg_size);
+  ockam_key_t* p_key, uint8_t* payload, size_t payload_size, uint8_t* msg, size_t msg_length, size_t* msg_size);
 
-ockam_error_t xx_decrypt(key_establishment_xx* xx,
+ockam_error_t xx_decrypt(ockam_key_t* p_key,
                          uint8_t*              payload,
                          size_t                payload_size,
                          uint8_t*              msg,
                          size_t                msg_length,
                          size_t*               payload_length);
 
-ockam_error_t xx_key_deinit(key_establishment_xx* xx);
+ockam_error_t xx_key_deinit(ockam_key_t*);
 
 #endif

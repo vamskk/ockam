@@ -16,6 +16,7 @@
 #include "memory/stdlib/stdlib.h"
 #include "random/urandom/urandom.h"
 #include "vault/default/default.h"
+#include "key_agreement/key_agreement_impl.h"
 
 #include "xx_test.h"
 
@@ -34,8 +35,8 @@ void usage()
   printf("OPTIONS\n");
   printf("  -a<xxx.xxx.xxx.xxx>\t\tIP Address\n");
   printf("  -p<portnum>\t\t\tPort\n");
-  printf("  -i \t\t\t\tRun initiator only\n");
-  printf("  -r \t\t\t\tRun responder only \n");
+  printf("  -i \t\t\t\tRun initiator\n");
+  printf("  -r \t\t\t\tRun responder\n");
   printf("  -s \t\t\t\tUse scripted test case\n\n");
 }
 
@@ -114,6 +115,11 @@ int main(int argc, char* argv[])
   printf("Port        : %u\n", ockam_ip.port);
   printf("Initiator   : %d\n", run_initiator);
   printf("Responder   : %d\n", run_responder);
+
+//  error = xx_test_responder(&vault, &ockam_ip);
+//  error = xx_test_initiator(&vault, &ockam_ip);
+//  goto exit;
+
 
   responder_process = fork();
   if (responder_process < 0) {

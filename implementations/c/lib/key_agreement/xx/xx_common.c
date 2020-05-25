@@ -3,6 +3,7 @@
 
 #include "ockam/error.h"
 #include "ockam/error.h"
+#include "key_agreement/key_agreement_impl.h"
 #include "ockam/key_agreement.h"
 #include "ockam/syslog.h"
 #include "ockam/vault.h"
@@ -15,8 +16,8 @@
  ********************************************************************************************************
  */
 
-ockam_error_t xx_encrypt(
-  key_establishment_xx* xx, uint8_t* payload, size_t payload_size, uint8_t* msg, size_t msg_length, size_t* msg_size)
+ockam_error_t xx_encrypt(ockam_key_t* p_key, uint8_t* payload, size_t payload_size,
+                         uint8_t* msg, size_t msg_length, size_t* msg_size)
 {
   ockam_error_t error = OCKAM_ERROR_NONE;
   uint8_t       cipher_text_and_tag[MAX_XX_TRANSMIT_SIZE];
@@ -28,9 +29,9 @@ ockam_error_t xx_encrypt(
   }
 
   memset(cipher_text_and_tag, 0, sizeof(cipher_text_and_tag));
-  error = ockam_vault_aead_aes_gcm_encrypt(xx->vault,
-                                           &xx->ke_secret,
-                                           xx->ne,
+  error = ockam_vault_aead_aes_gcm_encrypt(p_key->p_vault,
+                                           &p_key->encrypt_secret,
+                                           p_key->encrypt_nonce,
                                            NULL,
                                            0,
                                            payload,
@@ -40,7 +41,7 @@ ockam_error_t xx_encrypt(
                                            &ciphertext_and_tag_length);
   ;
   memcpy(msg, cipher_text_and_tag, ciphertext_and_tag_length);
-  xx->ne += 1;
+  p_key->encrypt_nonce += 1;
   *msg_size = ciphertext_and_tag_length;
 
 exit:
@@ -48,7 +49,7 @@ exit:
   return error;
 }
 
-ockam_error_t xx_decrypt(key_establishment_xx* xx,
+ockam_error_t xx_decrypt(ockam_key_t* p_key,
                          uint8_t*              payload,
                          size_t                payload_size,
                          uint8_t*              cipher_text,
@@ -61,9 +62,9 @@ ockam_error_t xx_decrypt(key_establishment_xx* xx,
 
   memset(clear_text, 0, sizeof(clear_text));
 
-  error           = ockam_vault_aead_aes_gcm_decrypt(xx->vault,
-                                           &xx->kd_secret,
-                                           xx->nd,
+  error           = ockam_vault_aead_aes_gcm_decrypt(p_key->p_vault,
+                                           &p_key->decrypt_secret,
+                                           p_key->decrypt_nonce,
                                            NULL,
                                            0,
                                            cipher_text,
@@ -74,28 +75,21 @@ ockam_error_t xx_decrypt(key_establishment_xx* xx,
   *payload_length = clear_text_length;
 
   memcpy(payload, clear_text, clear_text_length);
-  xx->nd += 1;
+  p_key->decrypt_nonce += 1;
 
 exit:
   if (error) log_error(error, __func__);
   return error;
 }
 
-ockam_error_t xx_key_deinit(key_establishment_xx* xx)
+ockam_error_t xx_key_deinit(ockam_key_t* p_key)
 {
   ockam_error_t error        = OCKAM_ERROR_NONE;
   ockam_error_t return_error = OCKAM_ERROR_NONE;
-  error                      = ockam_vault_secret_destroy(xx->vault, &xx->e_secret);
+
+  error = ockam_vault_secret_destroy(p_key->p_vault, &p_key->encrypt_secret);
   if (error) return_error = error;
-  error = ockam_vault_secret_destroy(xx->vault, &xx->s_secret);
-  if (error) return_error = error;
-  error = ockam_vault_secret_destroy(xx->vault, &xx->ke_secret);
-  if (error) return_error = error;
-  error = ockam_vault_secret_destroy(xx->vault, &xx->kd_secret);
-  if (error) return_error = error;
-  error = ockam_vault_secret_destroy(xx->vault, &xx->k_secret);
-  if (error) return_error = error;
-  error = ockam_vault_secret_destroy(xx->vault, &xx->ck_secret);
+  error = ockam_vault_secret_destroy(p_key->p_vault, &p_key->decrypt_secret);
   if (error) return_error = error;
 exit:
   return return_error;
@@ -128,16 +122,10 @@ ockam_error_t key_agreement_prologue_xx(key_establishment_xx* xx)
 
   // 2. Generate an ephemeral 25519 keypair for this handshake and set it to e
   error = ockam_vault_secret_generate(xx->vault, &xx->e_secret, &secret_attributes);
-  if (error) {
-    log_error(error, "key_agreement_prologue_xx");
-    goto exit;
-  }
+  if (error) goto exit;
 
   error = ockam_vault_secret_publickey_get(xx->vault, &xx->e_secret, xx->e, sizeof(xx->e), &key_size);
-  if (error) {
-    log_error(error, "key_agreement_prologue_xx");
-    goto exit;
-  }
+  if (error) goto exit;
 
   // 3. Set k to empty, Set n to 0
   xx->nonce = 0;

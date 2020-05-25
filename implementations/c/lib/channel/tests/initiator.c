@@ -61,7 +61,7 @@ ockam_error_t channel_initiator(ockam_vault_t* vault, ockam_memory_t* p_memory, 
   error = ockam_write(p_channel_writer, (uint8_t*) PING, PING_SIZE);
   if (error) goto exit;
 
-  error = ockam_read(p_channel_reader, recv_buffer, MAX_DNS_NAME_LENGTH, &bytes_received);
+  error = ockam_read(p_channel_reader, recv_buffer, MAX_XX_TRANSMIT_SIZE, &bytes_received);
   if (error) goto exit;
   if (0 != memcmp(recv_buffer, ACK, ACK_SIZE)) {
     error = OCKAM_ERROR_INTERFACE_CHANNEL;
