@@ -4,8 +4,6 @@
 #include "ockam/error.h"
 #include "ockam/codec.h"
 
-//!!todo test this code!
-
 uint8_t* encode_route(uint8_t* p_encoded, codec_route_t* p_route)
 {
   ockam_error_t error = OCKAM_ERROR_NONE;
